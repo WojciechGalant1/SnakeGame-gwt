@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+</head>
+
+<body>
+    <form id="scoreForm">
+        <div>
+            <label for="login">Login:</label>
+            <input type="text" id="login" name="login" required>
+        </div>
+
+        <div>
+            <label for="score">Punkty:</label>
+            <input type="number" id="score" name="score" required>
+        </div>
+        <div class="button">
+            <input type="submit" value="Zaloguj">
+        </div>
+    </form>
+
+    <div id="scoreboard">
+        <h2>Zawartość tabeli Scoreboard:</h2>
+        <ul id="scoreList"></ul>
+    </div>
+
+    <script>
+        // Funkcja do pobierania zawartości tabeli scoreboard
+        function getScoreboard() {
+            fetch('http://localhost:3000/scoreboard')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Błąd sieci!');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Odpowiedź z serwera:', data);
+                    // Wyświetlenie danych na stronie
+                    const scoreList = document.getElementById('scoreList');
+                    scoreList.innerHTML = ''; // Wyczyszczenie listy przed dodaniem nowych danych
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = `ID: ${item.id}, Name: ${item.name}, Score: ${item.points}`;
+                        scoreList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Wystąpił błąd:', error);
+                    // Obsłuż błąd, na przykład wyświetlając komunikat użytkownikowi
+                    alert('Wystąpił błąd podczas pobierania danych.');
+                });
+        }
+
+        // Wywołanie funkcji getScoreboard przy załadowaniu strony
+        window.onload = getScoreboard;
+
+        // Obsługa przesyłania formularza
+        document.getElementById('scoreForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Zapobiega domyślnej akcji przesyłania formularza
+
+            // Pobierz dane z formularza
+            const login = document.getElementById('login').value;
+            const score = document.getElementById('score').value;
+
+            // Wysyłanie danych do serwera za pomocą zapytania fetch
+            fetch('http://localhost:3000/submit-form', {
+                method: 'POST',
+                body: JSON.stringify({ login, score }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Błąd sieci!');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Odpowiedź z serwera:', data);
+                    // Tutaj możesz obsłużyć odpowiedź z serwera, na przykład wyświetlić komunikat użytkownikowi
+                    alert('Dane zostały pomyślnie przesłane!');
+                    // Po przesłaniu danych odśwież zawartość tabeli
+                    getScoreboard();
+                })
+                .catch(error => {
+                    console.error('Wystąpił błąd:', error);
+                    // Obsłuż błąd, na przykład wyświetlając komunikat użytkownikowi
+                    alert('Wystąpił błąd podczas przesyłania danych.');
+                });
+        });
+    </script>
+</body>
+
+</html>
